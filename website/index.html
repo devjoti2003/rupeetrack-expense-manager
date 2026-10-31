@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RupeeTrack - Modern Expense & Wealth Command Center</title>
+  
+  <meta name="description" content="Personal wealth & daily expense tracker in Indian Rupees with multi-month sheets, cash & savings allotments, interactive category analytics, and Excel export.">
+  <link rel="icon" type="image/png" href="./icons/favicon.png">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="#" class="nav-brand">
+        <div class="brand-badge">₹</div>
+        <div class="brand-title">
+          <h1>RupeeTrack <span class="tag">INR ₹</span></h1>
+          <p>Expense & Wealth Command Center</p>
+        </div>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="#kpiSection" class="nav-link active">Dashboard</a></li>
+        <li><a href="#allotmentsSection" class="nav-link">Fund Allotments</a></li>
+        <li><a href="#chartsSection" class="nav-link">Analytics & Charts</a></li>
+        <li><a href="#categorySection" class="nav-link">Category Explorer</a></li>
+        <li><a href="#expensesTableCard" class="nav-link">Expenses Log</a></li>
+        <li><a href="#downloadsSection" class="nav-link">Downloads & App</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <button id="btnHeaderAddExpense" class="btn btn-primary">
+          <span>➕</span> Add Expense
+        </button>
+        <button id="btnExportExcelHeader" class="btn btn-secondary" title="Export Current Sheet to Excel (.xlsx)">
+          <span>📊</span> Export .XLSX
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Month Sheets Sub-Header (Like Excel Sheets) -->
+  <div class="sheets-subbar">
+    <div class="sheets-container">
+      <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+        <span style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;">Active Sheet:</span>
+        <b style="font-size:13px;color:#38BDF8;" id="activeSheetNameText">October 2026</b>
+      </div>
+
+      <div class="sheets-tabs-group" id="sheetsTabGroup">
+        <!-- Injected dynamically by app.js -->
+      </div>
+
+      <div class="sheet-meta-tools">
+        <button id="btnOpenAllotmentModal" class="btn btn-secondary btn-sm" title="Edit Month Allotments">
+          ⚙️ Edit Allotments
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Application Layout -->
+  <main class="main-layout">
+
+    <!-- 1. Master Financial KPI Row -->
+    <section class="kpi-row" id="kpiSection">
+      <!-- Total Money Pool -->
+      <div class="kpi-card" style="background: linear-gradient(145deg, #1E293B, #0F172A);">
+        <div class="kpi-card-header">
+          <span class="kpi-card-title">💰 Total Money Pool</span>
+          <span class="kpi-card-icon">🇮🇳</span>
+        </div>
+        <div class="kpi-card-value" id="kpiTotalMoney">₹0.00</div>
+        <div class="kpi-card-sub">Total monthly funds available</div>
+      </div>
+
+      <!-- Net Money Left -->
+      <div class="kpi-card kpi-money-left">
+        <div class="kpi-card-header">
+          <span class="kpi-card-title">🟢 Net Money Left</span>
+          <span class="kpi-card-icon">💰</span>
+        </div>
+        <div class="kpi-card-value" id="kpiMoneyLeft">₹0.00</div>
+        <div class="kpi-card-sub" id="subMoneyLeft">Remaining net balance</div>
+      </div>
+
+      <!-- Total Expenses Spent -->
+      <div class="kpi-card kpi-expenses">
+        <div class="kpi-card-header">
+          <span class="kpi-card-title">💸 Total Spent</span>
+          <span class="kpi-card-icon">📉</span>
+        </div>
+        <div class="kpi-card-value" id="kpiTotalExpenses">₹0.00</div>
+        <div class="kpi-card-sub">All logged transactions</div>
+      </div>
+
+      <!-- Personal Savings Allotted -->
+      <div class="kpi-card kpi-savings">
+        <div class="kpi-card-header">
+          <span class="kpi-card-title">🏦 Savings Allotted</span>
+          <span class="kpi-card-icon">🔒</span>
+        </div>
+        <div class="kpi-card-value" id="kpiSavings">₹0.00</div>
+        <div class="kpi-card-sub">Personal protected reserve</div>
+      </div>
+
+      <!-- Personal Cash Allotted -->
+      <div class="kpi-card kpi-cash">
+        <div class="kpi-card-header">
+          <span class="kpi-card-title">💵 Cash Allotted</span>
+          <span class="kpi-card-icon">👛</span>
+        </div>
+        <div class="kpi-card-value" id="kpiCash">₹0.00</div>
+        <div class="kpi-card-sub" id="subCashLeft">Cash in wallet</div>
+      </div>
+
+      <!-- Spendable Buffer (After Savings) -->
+      <div class="kpi-card kpi-spendable">
+        <div class="kpi-card-header">
+          <span class="kpi-card-title">🎯 Spendable Buffer</span>
+          <span class="kpi-card-icon">✨</span>
+        </div>
+        <div class="kpi-card-value" id="kpiSpendable">₹0.00</div>
+        <div class="kpi-card-sub" id="subSpendable">Buffer without touching savings</div>
+      </div>
+    </section>
+
+    <!-- 2. Fund Allotment Hub & Capital Allocation Chart -->
+    <div class="grid-2col" id="allotmentsSection">
+      
+      <!-- Allotment Table Card -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">💵 Personal Fund Allotment & Liquidity Breakdown</h2>
+            <p class="card-subtitle">Manage your Total Money pool and personally allotted Savings & Cash.</p>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="webApp.openAllotmentModal()">
+            ✏️ Edit Allotments
+          </button>
+        </div>
+
+        <table class="allotment-table">
+          <thead>
+            <tr>
+              <th>Asset / Fund Bucket</th>
+              <th>Amount (₹)</th>
+              <th>% Share</th>
+              <th>Current Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="allotment-bucket-cell">
+                  <div class="bucket-icon blue">💰</div>
+                  <div>
+                    <div>Total Money Available</div>
+                    <div style="font-size:11px;color:var(--text-muted);font-weight:400;">Monthly salary / capital pool</div>
+                  </div>
+                </div>
+              </td>
+              <td style="font-weight:800;font-size:15px;" id="allotTotalMoney">₹0.00</td>
+              <td><span class="badge badge-blue">100.0%</span></td>
+              <td><span class="badge badge-blue">Active Pool</span></td>
+            </tr>
+
+            <tr>
+              <td>
+                <div class="allotment-bucket-cell">
+                  <div class="bucket-icon blue">🏦</div>
+                  <div>
+                    <div>Personal Savings Allotment</div>
+                    <div style="font-size:11px;color:var(--text-muted);font-weight:400;">Protected emergency fund & SIP</div>
+                  </div>
+                </div>
+              </td>
+              <td style="font-weight:700;color:#60A5FA;" id="allotSavings">₹0.00</td>
+              <td><span class="badge badge-blue" id="badgeSavingsPct">0.0%</span></td>
+              <td><span class="badge badge-blue">Set Aside</span></td>
+            </tr>
+
+            <tr>
+              <td>
+                <div class="allotment-bucket-cell">
+                  <div class="bucket-icon gold">👛</div>
+                  <div>
+                    <div>Personal Cash Allotment</div>
+                    <div style="font-size:11px;color:var(--text-muted);font-weight:400;">Physical wallet cash in hand</div>
+                  </div>
+                </div>
+              </td>
+              <td style="font-weight:700;color:#FBBF24;" id="allotCash">₹0.00</td>
+              <td><span class="badge badge-gold" id="badgeCashPct">0.0%</span></td>
+              <td><span class="badge badge-gold">In Wallet</span></td>
+            </tr>
+
+            <tr>
+              <td>
+                <div class="allotment-bucket-cell">
+                  <div class="bucket-icon purple">💳</div>
+                  <div>
+                    <div>Digital / Bank Spending Pool</div>
+                    <div style="font-size:11px;color:var(--text-muted);font-weight:400;">UPI, Cards & Net Banking</div>
+                  </div>
+                </div>
+              </td>
+              <td style="font-weight:700;color:#A78BFA;" id="allotDigital">₹0.00</td>
+              <td><span class="badge badge-purple" id="badgeDigitalPct">0.0%</span></td>
+              <td><span class="badge badge-purple">Digital Checking</span></td>
+            </tr>
+
+            <tr>
+              <td>
+                <div class="allotment-bucket-cell">
+                  <div class="bucket-icon gold">💵</div>
+                  <div>
+                    <div>Cash Remaining in Hand</div>
+                    <div style="font-size:11px;color:var(--text-muted);font-weight:400;">Allotted cash minus cash spent</div>
+                  </div>
+                </div>
+              </td>
+              <td style="font-weight:800;color:#FBBF24;" id="allotCashRemaining">₹0.00</td>
+              <td style="font-size:12px;color:var(--text-muted);" id="allotCashSpent">Spent: ₹0.00</td>
+              <td><span class="badge badge-gold">Auto-Reconciled</span></td>
+            </tr>
+
+            <tr>
+              <td>
+                <div class="allotment-bucket-cell">
+                  <div class="bucket-icon green">🟢</div>
+                  <div>
+                    <div>Net Money Left (Overall)</div>
+                    <div style="font-size:11px;color:var(--text-muted);font-weight:400;">Total pool minus total spent</div>
+                  </div>
+                </div>
+              </td>
+              <td style="font-weight:800;color:#34D399;font-size:15px;" id="allotMoneyLeft">₹0.00</td>
+              <td><span class="badge badge-green">Surplus</span></td>
+              <td><span class="badge badge-green">Healthy</span></td>
+            </tr>
+
+            <tr>
+              <td>
+                <div class="allotment-bucket-cell">
+                  <div class="bucket-icon green">🎯</div>
+                  <div>
+                    <div>Spendable Buffer (Safe)</div>
+                    <div style="font-size:11px;color:var(--text-muted);font-weight:400;">Free funds without touching savings</div>
+                  </div>
+                </div>
+              </td>
+              <td style="font-weight:800;color:#34D399;" id="allotSpendable">₹0.00</td>
+              <td><span class="badge badge-green">Safe</span></td>
+              <td><span class="badge badge-green">Protected</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Capital Allocation Chart Card -->
+      <div class="card" id="chartsSection">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">📊 Capital Allotment & Wealth Distribution</h2>
+            <p class="card-subtitle">Visual representation of your Savings, Cash, Expenses, and Money Left.</p>
+          </div>
+        </div>
+
+        <div class="chart-box">
+          <div class="svg-donut-wrapper">
+            <svg id="svgDonut" width="240" height="240" viewBox="0 0 240 240"></svg>
+            <div class="donut-center-info">
+              <div class="label">Total Pool</div>
+              <div class="value" id="donutCenterTotal">₹0.00</div>
+            </div>
+          </div>
+
+          <div class="chart-legend-grid" id="chartLegendGrid">
+            <!-- Injected dynamically -->
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 3. Interactive Category Explorer (Feature #4) -->
+    <section class="card" id="categorySection">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">🎯 Interactive Category Explorer</h2>
+          <p class="card-subtitle">Click any category card below to instantly filter your individual expenses sorted chronologically by date.</p>
+        </div>
+        <span style="font-size:12px;color:var(--text-muted);">✨ 1-Click Interactive Filter</span>
+      </div>
+
+      <!-- Category Filter Cards -->
+      <div class="category-cards-grid" id="categoryCardsGrid">
+        <!-- Injected dynamically by app.js -->
+      </div>
+
+      <!-- Ranked Category Spending Bars -->
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border-subtle);">
+        <h3 style="font-size:14px;font-weight:700;margin-bottom:12px;color:var(--text-secondary);">
+          📈 Category Spending Comparison (₹ INR)
+        </h3>
+        <div class="bar-chart-list" id="categoryBarList">
+          <!-- Injected dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Full Expenses Data Table -->
+    <section class="card" id="expensesTableCard">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">📋 Expenses Log & Transaction Details</h2>
+          <p class="card-subtitle">All expenses sorted into dates. Search, filter, edit, or add daily transactions.</p>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <button id="btnOpenAddExpense" class="btn btn-primary btn-sm">
+            ➕ Add New Expense
+          </button>
+          <button id="btnExportExcel" class="btn btn-secondary btn-sm">
+            📊 Export to Excel (.xlsx)
+          </button>
+        </div>
+      </div>
+
+      <!-- Table Toolbar -->
+      <div class="table-toolbar">
+        <div class="search-input-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchInput" class="search-input" placeholder="Search by description, category, notes, or amount...">
+        </div>
+
+        <div class="table-filter-controls">
+          <select id="paymentSelectFilter" class="select-control">
+            <option value="All">All Payment Methods</option>
+            <option value="UPI / GPay">UPI / GPay</option>
+            <option value="UPI / PhonePe">UPI / PhonePe</option>
+            <option value="Credit Card">Credit Card</option>
+            <option value="Debit Card">Debit Card</option>
+            <option value="Cash">Cash (Wallet)</option>
+            <option value="Net Banking">Net Banking</option>
+            <option value="Amazon Pay">Amazon Pay</option>
+          </select>
+
+          <button id="btnSortDate" class="btn btn-secondary btn-sm" title="Toggle date sorting">
+            Date ▴ (Oldest First)
+          </button>
+        </div>
+      </div>
+
+      <!-- Data Table -->
+      <div class="table-responsive">
+        <table class="expenses-data-table">
+          <thead>
+            <tr>
+              <th class="sortable" style="width:130px;">Date</th>
+              <th style="width:140px;">Category</th>
+              <th>Description</th>
+              <th style="text-align:right;width:140px;">Amount (₹)</th>
+              <th style="width:140px;">Payment Method</th>
+              <th>Notes</th>
+              <th style="text-align:center;width:90px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="expensesTableBody">
+            <!-- Injected dynamically -->
+          </tbody>
+          <tfoot>
+            <tr class="total-row" id="tableTotalRow">
+              <!-- Injected dynamically -->
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;font-size:12px;color:var(--text-muted);">
+        <span id="tableItemCount">0 transactions</span>
+        <span>💡 Clicking any category in the Category Explorer above auto-filters this table instantly.</span>
+      </div>
+    </section>
+
+    <!-- 5. Downloads, Excel Template & Android App Center -->
+    <section class="card" id="downloadsSection">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">📱 Downloads, Master Excel & Mobile App Center</h2>
+          <p class="card-subtitle">Take your expense manager everywhere: desktop, phone, or Excel.</p>
+        </div>
+      </div>
+
+      <div class="grid-2col">
+        <!-- Excel Download Box -->
+        <div style="background:var(--bg-card-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:20px;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+            <div style="width:44px;height:44px;border-radius:var(--radius-md);background:#10B981;display:flex;align-items:center;justify-content:center;color:white;font-size:22px;font-weight:800;">
+              📊
+            </div>
+            <div>
+              <h3 style="font-size:15px;font-weight:700;">Master Excel Sheet (.xlsx)</h3>
+              <p style="font-size:12px;color:var(--text-muted);">Native formulas, dynamic sort, and charts</p>
+            </div>
+          </div>
+          <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">
+            Download the standalone Microsoft Excel workbook formatted with formulas (`SORT(FILTER(...))`), Donut charts, and Indian Rupee currency.
+          </p>
+          <a href="./downloads/Expense_Tracker.xlsx" download="Expense_Tracker.xlsx" class="btn btn-success" style="width:100%;justify-content:center;">
+            📥 Download Master Excel Sheet (.xlsx)
+          </a>
+        </div>
+
+        <!-- Android App Box -->
+        <div style="background:var(--bg-card-subtle);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:20px;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+            <div style="width:44px;height:44px;border-radius:var(--radius-md);background:#2563EB;display:flex;align-items:center;justify-content:center;color:white;font-size:22px;font-weight:800;">
+              📱
+            </div>
+            <div>
+              <h3 style="font-size:15px;font-weight:700;">Install on Android Device</h3>
+              <p style="font-size:12px;color:var(--text-muted);">Progressive Web App with 100% offline support</p>
+            </div>
+          </div>
+          <p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px;">
+            Open this website in Chrome on your Android phone, tap the three dots (⋮), and choose <b>"Add to Home screen"</b> or <b>"Install App"</b>.
+          </p>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span class="badge badge-green">✓ Works 100% Offline</span>
+            <span class="badge badge-blue">✓ Multi-Month Sheets</span>
+            <span class="badge badge-gold">✓ Cash Auto-Reconcile</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modal: Add / Edit Expense -->
+  <dialog id="expenseDialog">
+    <div class="modal-header">
+      <h3 class="modal-title" id="modalExpenseTitle">Add New Expense</h3>
+      <button type="button" class="btn-modal-close">✕</button>
+    </div>
+
+    <form id="formExpense">
+      <div class="form-group">
+        <label class="form-label" for="expInputAmount">Amount (₹)</label>
+        <div class="amount-input-group">
+          <span class="amount-prefix">₹</span>
+          <input type="number" step="0.01" inputmode="decimal" id="expInputAmount" class="form-control amount-control" placeholder="0.00" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Category</label>
+        <input type="hidden" id="expInputCategory" value="Meals">
+        <div class="modal-category-chips" id="modalCategoryChips">
+          <!-- Injected dynamically -->
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="expInputDesc">Description / Merchant</label>
+        <input type="text" id="expInputDesc" class="form-control" placeholder="e.g. Lunch with team, Metro card, Uber" required>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group">
+          <label class="form-label" for="expInputDate">Date</label>
+          <input type="date" id="expInputDate" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="expInputPayment">Payment Method</label>
+          <select id="expInputPayment" class="form-control">
+            <option value="UPI / GPay">UPI / GPay</option>
+            <option value="UPI / PhonePe">UPI / PhonePe</option>
+            <option value="Credit Card">Credit Card</option>
+            <option value="Debit Card">Debit Card</option>
+            <option value="Cash">Cash (Physical Wallet)</option>
+            <option value="Net Banking">Net Banking</option>
+            <option value="Amazon Pay">Amazon Pay</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="expInputNotes">Notes (Optional)</label>
+        <input type="text" id="expInputNotes" class="form-control" placeholder="Any tag or additional note">
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" id="btnDeleteExpense" class="btn btn-danger" style="display:none;margin-right:auto;">Delete</button>
+        <button type="button" class="btn btn-secondary btn-modal-cancel">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Expense</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Modal: Add New Month Sheet -->
+  <dialog id="monthDialog">
+    <div class="modal-header">
+      <h3 class="modal-title">Create New Month Sheet</h3>
+      <button type="button" class="btn-modal-close">✕</button>
+    </div>
+
+    <form id="formMonth">
+      <div class="form-group">
+        <label class="form-label" for="inputMonthPicker">Select Month & Year</label>
+        <input type="month" id="inputMonthPicker" class="form-control" value="2026-11" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="inputMonthTotalMoney">Total Money Pool (₹)</label>
+        <input type="number" step="100" id="inputMonthTotalMoney" class="form-control" value="85000" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="inputMonthSavings">Personal Savings Allotment (₹)</label>
+        <input type="number" step="100" id="inputMonthSavings" class="form-control" value="25000" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="inputMonthCash">Personal Cash Allotment (₹)</label>
+        <input type="number" step="100" id="inputMonthCash" class="form-control" value="8000" required>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-modal-cancel">Cancel</button>
+        <button type="submit" class="btn btn-primary">Create Month Sheet</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Modal: Edit Allotments -->
+  <dialog id="allotmentDialog">
+    <div class="modal-header">
+      <h3 class="modal-title">Edit Monthly Allotments</h3>
+      <button type="button" class="btn-modal-close">✕</button>
+    </div>
+
+    <form id="formAllotment">
+      <div class="form-group">
+        <label class="form-label" for="editAllotTotalMoney">Total Money Available (₹)</label>
+        <input type="number" step="100" id="editAllotTotalMoney" class="form-control" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="editAllotSavings">Personal Savings Allotment (₹)</label>
+        <input type="number" step="100" id="editAllotSavings" class="form-control" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="editAllotCash">Personal Cash Allotment (₹)</label>
+        <input type="number" step="100" id="editAllotCash" class="form-control" required>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-modal-cancel">Cancel</button>
+        <button type="submit" class="btn btn-primary">Update Allotments</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Toast Notification -->
+  <div id="toastNotice" class="toast-notice">Action successful</div>
+
+  <!-- SheetJS Library for 100% Offline Excel Export (.xlsx) -->
+  <script src="./lib/xlsx.full.min.js"></script>
+  <!-- Application Engine -->
+  <script src="./app.js"></script>
+</body>
+</html>
